@@ -1,31 +1,84 @@
 import { signJwt } from '../../app/auth/server-auth';
+import { getSingleAllowedUser, secureEqual, toPublic } from '../_lib/auth-user.mts';
+
+const headers = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 export default async function handler(req: Request) {
-  const headers: Record<string,string> = {
-    'content-type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
-  };
-  if (req.method === 'OPTIONS') return new Response(null, { status: 200, headers });
-  if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'method' }), { status: 405, headers });
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 200, headers });
+  }
+
   try {
-    const body = await req.json().catch(() => ({}));
-    const userEnv = process.env.DASHBOARD_USER;
-    const passEnv = process.env.DASHBOARD_PASSWORD;
-    if (!userEnv || !passEnv) {
-      return new Response(JSON.stringify({ error: 'server_misconfig' }), { status: 500, headers });
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Méthode non autorisée' 
+      }), { status: 405, headers });
     }
-    const { username, password } = body;
-    if (username !== userEnv || password !== passEnv) {
-      await new Promise(r => setTimeout(r, 400)); // petite latence pour éviter brute force
-      return new Response(JSON.stringify({ error: 'invalid_credentials' }), { status: 401, headers });
-    }
+
     const secret = process.env.JWT_SECRET;
-    if (!secret) return new Response(JSON.stringify({ error: 'server_misconfig' }), { status: 500, headers });
-    const token = await signJwt({ sub: username, role: 'admin' }, secret, { expiresInSeconds: 60 * 60 * 8 });
-    return new Response(JSON.stringify({ token, expiresIn: 60 * 60 * 8 }), { status: 200, headers });
+    if (!secret) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'JWT_SECRET manquant côté serveur' 
+      }), { status: 500, headers });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const { username, password } = body;
+
+    if (!username || !password) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Identifiants requis' 
+      }), { status: 400, headers });
+    }
+
+    const user = getSingleAllowedUser();
+    if (username !== user.username || !secureEqual(user.password, password)) {
+      await sleep(150);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Identifiants invalides' 
+      }), { status: 401, headers });
+    }
+
+    const payload = { 
+      sub: user.id, 
+      username: user.username, 
+      role: user.role 
+    };
+    
+    const token = await signJwt(payload, secret, { 
+      expiresInSeconds: 60 * 60 * 24 * 7 // 7 jours
+    });
+
+    return new Response(JSON.stringify({ 
+      success: true,
+      data: {
+        token, 
+        user: toPublic(user)
+      }
+    }), { 
+      status: 200, 
+      headers 
+    });
+
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: 'error', message: e?.message }), { status: 500, headers });
+    console.error('Erreur de login:', e);
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: 'Erreur serveur', 
+      message: e?.message 
+    }), { status: 500, headers });
   }
 }

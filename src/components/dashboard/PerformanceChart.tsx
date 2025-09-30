@@ -10,26 +10,26 @@ interface PerformanceChartProps {
   data: PerformanceData[];
 }
 
-export function PerformanceChart({ data }: PerformanceChartProps) {
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-card border border-accent rounded-lg p-3 shadow-card">
-          <p className="font-medium text-card-foreground">{label}</p>
-          <p className="text-sm text-profit">
-            Equity: ${payload[0].value.toFixed(2)}
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload?.length) {
+    return (
+      <div className="bg-card border border-accent rounded-lg p-3 shadow-card">
+        <p className="font-medium text-card-foreground">{label}</p>
+        <p className="text-sm text-profit">
+          Equity: ${payload[0].value.toFixed(2)}
+        </p>
+        {payload[1] && (
+          <p className="text-sm text-loss">
+            Drawdown: {payload[1].value.toFixed(2)}%
           </p>
-          {payload[1] && (
-            <p className="text-sm text-loss">
-              Drawdown: {payload[1].value.toFixed(2)}%
-            </p>
-          )}
-        </div>
-      );
-    }
-    return null;
-  };
+        )}
+      </div>
+    );
+  }
+  return null;
+};
 
+export function PerformanceChart({ data }: Readonly<PerformanceChartProps>) {
   return (
     <ResponsiveContainer width="100%" height={400}>
       <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>

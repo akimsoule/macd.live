@@ -69,5 +69,5 @@ export const BITGET_CONFIG = {
   apiKey: process.env.ACCOUNT_API_KEY_MAIN,
   secret: process.env.ACCOUNT_SECRET_KEY_MAIN,
   password: process.env.API_PASS,
-  sandbox: process.env.APP_ENV !== 'production',
+  sandbox: false,
 };

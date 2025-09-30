@@ -1,9 +1,14 @@
 import { runSymbol } from '../../app/trading/trader';
+import { requireAuth } from '../../app/auth/server-auth';
 
 // Endpoint manuel: /api/run-symbol?symbol=PEOPLE/USDT:USDT
 // Body JSON optionnel { symbol: "..." }
 export default async function handler(req: Request) {
   try {
+    if (process.env.PUBLIC_DASHBOARD !== '1') {
+      const authRes = await requireAuth(req).catch(() => null);
+      if (!authRes) return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
+    }
     let url: URL | null = null;
     try { url = new URL(req.url); } catch {}
     let symbol = url?.searchParams.get('symbol') || '';

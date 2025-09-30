@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export interface TradingSummary {
   initialCapital: number;
@@ -20,7 +20,7 @@ export interface AllocationItem {
   notional: number;
   pnl: number;
   trades: number;
-  status?: 'LONG' | 'SHORT' | 'NONE';
+  status?: "LONG" | "SHORT" | "NONE";
 }
 
 export interface PerformancePoint {
@@ -31,7 +31,7 @@ export interface PerformancePoint {
 
 export interface TradeItem {
   symbol: string;
-  side: 'LONG' | 'SHORT';
+  side: "LONG" | "SHORT";
   entryPrice: number;
   exitPrice: number;
   pnlPct: number;
@@ -69,11 +69,17 @@ interface UseTradingDataResult {
   isStale: boolean;
 }
 
-const DEFAULT_ENDPOINT = '/api/trading-data';
+const DEFAULT_ENDPOINT = "/api/trading-data";
 const DEFAULT_POLL = 5 * 60 * 1000; // 5 min
 
-export function useTradingData(options: UseTradingDataOptions = {}): UseTradingDataResult {
-  const { pollIntervalMs = DEFAULT_POLL, immediate = true, endpoint = DEFAULT_ENDPOINT } = options;
+export function useTradingData(
+  options: UseTradingDataOptions = {}
+): UseTradingDataResult {
+  const {
+    pollIntervalMs = DEFAULT_POLL,
+    immediate = true,
+    endpoint = DEFAULT_ENDPOINT,
+  } = options;
 
   const [data, setData] = useState<TradingData | null>(null);
   const [loading, setLoading] = useState<boolean>(immediate);
@@ -94,30 +100,46 @@ export function useTradingData(options: UseTradingDataOptions = {}): UseTradingD
 
     try {
       // Essai principal
-      let res = await fetch(endpoint, { signal: controller.signal, headers: { 'Accept': 'application/json' } });
+      const token = localStorage.getItem("auth_token");
+      const baseHeaders: Record<string, string> = {
+        Accept: "application/json",
+      };
+      if (token) baseHeaders["Authorization"] = `Bearer ${token}`;
+      let res = await fetch(endpoint, {
+        signal: controller.signal,
+        headers: baseHeaders,
+      });
       // Si on obtient du HTML (ex: fallback index.html), tenter endpoint fonctions direct
-      const ct = res.headers.get('content-type') || '';
-      if (ct.includes('text/html')) {
+      const ct = res.headers.get("content-type") || "";
+      if (ct.includes("text/html")) {
         // fallback vers ancienne route (compat)
         try {
-          res = await fetch('/.netlify/functions/trading-data', { signal: controller.signal, headers: { 'Accept': 'application/json' } });
+          const fallbackHeaders = { ...baseHeaders };
+          res = await fetch("/.netlify/functions/trading-data", {
+            signal: controller.signal,
+            headers: fallbackHeaders,
+          });
         } catch {}
       }
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
       }
-      const finalCt = res.headers.get('content-type') || '';
-      if (!finalCt.includes('application/json')) {
+      const finalCt = res.headers.get("content-type") || "";
+      if (!finalCt.includes("application/json")) {
         const text = await res.text();
-        throw new Error(`Réponse non JSON (content-type=${finalCt || 'inconnu'}) extrait="${text.slice(0,60)}"`);
+        throw new Error(
+          `Réponse non JSON (content-type=${
+            finalCt || "inconnu"
+          }) extrait="${text.slice(0, 60)}"`
+        );
       }
       const json = await res.json();
       setData(json);
       setLastFetched(Date.now());
     } catch (e: any) {
-      if (e.name === 'AbortError') return; // fetch annulé
-      console.error('[useTradingData] fetch error', e);
-      setError(e.message || 'Erreur inconnue');
+      if (e.name === "AbortError") return; // fetch annulé
+      console.error("[useTradingData] fetch error", e);
+      setError(e.message || "Erreur inconnue");
     } finally {
       setLoading(false);
     }
@@ -157,7 +179,9 @@ export function useTradingData(options: UseTradingDataOptions = {}): UseTradingD
     };
   }, [pollIntervalMs, fetchData]);
 
-  const isStale = lastFetched ? Date.now() - lastFetched > pollIntervalMs * 1.5 : true;
+  const isStale = lastFetched
+    ? Date.now() - lastFetched > pollIntervalMs * 1.5
+    : true;
 
   return { data, loading, error, refresh, lastFetched, isStale };
 }

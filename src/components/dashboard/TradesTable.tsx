@@ -24,7 +24,7 @@ interface TradesTableProps {
   trades: Trade[];
 }
 
-export function TradesTable({ trades }: TradesTableProps) {
+export function TradesTable({ trades }: Readonly<TradesTableProps>) {
   const getSideBadgeVariant = (side: "LONG" | "SHORT") => {
     return side === "LONG" ? "default" : "secondary";
   };
@@ -67,8 +67,11 @@ export function TradesTable({ trades }: TradesTableProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {trades.map((trade, index) => (
-                <TableRow key={index} className="border-accent hover:bg-accent/50">
+              {trades.map((trade) => (
+                <TableRow
+                  key={`${trade.symbol}-${trade.entryPrice}`}
+                  className="border-accent hover:bg-accent/50"
+                >
                   <TableCell className="font-medium text-card-foreground">
                     {trade.symbol.replace("/USDT:USDT", "")}
                   </TableCell>

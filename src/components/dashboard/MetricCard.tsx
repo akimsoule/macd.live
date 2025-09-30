@@ -10,7 +10,7 @@ interface MetricCardProps {
   className?: string;
 }
 
-export function MetricCard({ title, value, subtitle, trend, icon, className }: MetricCardProps) {
+export function MetricCard({ title, value, subtitle, trend, icon, className }: Readonly<MetricCardProps>) {
   const getTrendColor = () => {
     switch (trend) {
       case "up":

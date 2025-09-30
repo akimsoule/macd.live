@@ -93,7 +93,22 @@ const DEFAULT_FAST = 12,
   DEFAULT_SLOW = 26,
   DEFAULT_SIGNAL = 9;
 const TIMEFRAME = "1h";
-const HISTORY_LIMIT = 1000; // ~25 jours
+
+function periodsFromDays(days: number, timeframe: string = TIMEFRAME): number {
+  // timeframe: ex "1h", "4h", "1d"
+  const tfMatch = timeframe.match(/^(\d+)([mhd])$/);
+  if (!tfMatch) return Math.min(1000, days * 24); // fallback: 1h
+  const value = parseInt(tfMatch[1], 10);
+  const unit = tfMatch[2];
+  let periodsPerDay = 24;
+  if (unit === "m") periodsPerDay = (24 * 60) / value;
+  else if (unit === "h") periodsPerDay = 24 / value;
+  else if (unit === "d") periodsPerDay = 1 / value;
+  const periods = Math.round(days * periodsPerDay);
+  return Math.min(1000, periods);
+}
+
+const HISTORY_LIMIT = periodsFromDays(30); // ~25 jours, max 1000 périodes
 const MAKER_FEE = 0.0002;
 const TAKER_FEE = 0.0006;
 const SLIPPAGE = 0.0002; // 2 bps
@@ -458,13 +473,13 @@ async function run() {
   }
   const fs = await import("fs");
   const path = await import("path");
-  
+
   // S'assurer que le répertoire data existe
   const dataDir = "data";
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
-  
+
   const csvFilePath = path.join(dataDir, "allocation_trades.csv");
   fs.writeFileSync(csvFilePath, csvLines.join("\n"));
   console.log(`\n📝 Fichier ${csvFilePath} écrit.`);

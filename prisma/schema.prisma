@@ -1,0 +1,64 @@
+// Prisma schema pour la persistance de l'historique de trading
+// Générer: npx prisma generate
+// Migrer: npx prisma migrate dev --name init_trading_history
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Trade {
+    id         String   @id @default(cuid())
+    symbol     String
+    side       String // LONG | SHORT
+    entryPrice Float
+    exitPrice  Float
+    pnlPct     Float
+    pnlUsd     Float
+    reason     String
+    barsHeld   Int      @default(0)
+    entryTime  DateTime
+    exitTime   DateTime
+    margin     Float    @default(0)
+    fees       Float    @default(0)
+    success    Boolean  @default(true)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    @@index([exitTime])
+}
+
+model EquitySnapshot {
+    id        String   @id @default(cuid())
+    timestamp DateTime @unique
+    equity    Float
+    drawdown  Float
+    totalPnl  Float
+    createdAt DateTime @default(now())
+}
+
+model MetricSnapshot {
+    id                   String   @id @default(cuid())
+    timestamp            DateTime @unique
+    totalTrades          Int
+    winningTrades        Int
+    losingTrades         Int
+    winRate              Float
+    totalPnl             Float
+    maxDrawdown          Float
+    sharpeRatio          Float
+    averageWin           Float
+    averageLoss          Float
+    profitFactor         Float
+    maxConsecutiveWins   Int
+    maxConsecutiveLosses Int
+    createdAt            DateTime @default(now())
+
+    @@index([timestamp])
+}
+
+// Vue potentielle future pour agrégations; non supporté dans sqlite directement.

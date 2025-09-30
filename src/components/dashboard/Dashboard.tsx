@@ -1,127 +1,49 @@
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { MetricCard } from "./MetricCard";
 import { AllocationChart } from "./AllocationChart";
 import { PerformanceChart } from "./PerformanceChart";
 import { TradesTable } from "./TradesTable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, DollarSign, Activity, Target, AlertTriangle } from "lucide-react";
-
-// Types pour les données
-interface BacktestData {
-  summary: {
-    initialCapital: number;
-    finalEquity: number;
-    totalPnl: number;
-    totalPnlPct: number;
-    totalTrades: number;
-    winningTrades: number;
-    losingTrades: number;
-    winRate: number;
-    maxDrawdown: number;
-    sharpeRatio: number;
-  };
-  allocation: Array<{
-    symbol: string;
-    allocation: number;
-    notional: number;
-    pnl: number;
-    trades: number;
-  }>;
-  performance: Array<{
-    timestamp: string;
-    equity: number;
-    drawdown: number;
-  }>;
-  trades: Array<{
-    symbol: string;
-    side: "LONG" | "SHORT";
-    entryPrice: number;
-    exitPrice: number;
-    pnlPct: number;
-    pnlUsd: number;
-    reason: string;
-    barsHeld: number;
-  }>;
-}
+import { useTradingData } from "@/hooks/useTradingData";
+import { useRunSymbol } from "@/hooks/useRunSymbol";
 
 export function Dashboard() {
-  const [data, setData] = useState<BacktestData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, error, refresh, isStale } = useTradingData();
 
-  // Données de démonstration basées sur le script fourni
-  useEffect(() => {
-    // Simulation de chargement des données depuis votre backend
-    setTimeout(() => {
-      const mockData: BacktestData = {
-        summary: {
-          initialCapital: 1000,
-          finalEquity: 1156.78,
-          totalPnl: 156.78,
-          totalPnlPct: 15.68,
-          totalTrades: 47,
-          winningTrades: 28,
-          losingTrades: 19,
-          winRate: 59.57,
-          maxDrawdown: -8.45,
-          sharpeRatio: 1.24
-        },
-        allocation: [
-          { symbol: "IP/USDT", allocation: 0.5, notional: 1250, pnl: 89.34, trades: 18 },
-          { symbol: "PEOPLE/USDT", allocation: 0.3, notional: 750, pnl: 45.67, trades: 15 },
-          { symbol: "AVNT/USDT", allocation: 0.1, notional: 250, pnl: 12.89, trades: 8 },
-          { symbol: "0G/USDT", allocation: 0.1, notional: 250, pnl: 8.88, trades: 6 }
-        ],
-        performance: [
-          { timestamp: "2024-01-01", equity: 1000, drawdown: 0 },
-          { timestamp: "2024-01-15", equity: 1045.23, drawdown: -2.1 },
-          { timestamp: "2024-02-01", equity: 1089.67, drawdown: -4.5 },
-          { timestamp: "2024-02-15", equity: 1134.45, drawdown: -1.8 },
-          { timestamp: "2024-03-01", equity: 1156.78, drawdown: -0.5 }
-        ],
-        trades: [
-          {
-            symbol: "IP/USDT:USDT",
-            side: "LONG",
-            entryPrice: 12.456,
-            exitPrice: 13.234,
-            pnlPct: 15.67,
-            pnlUsd: 39.18,
-            reason: "SIGNAL_FLIP",
-            barsHeld: 72
-          },
-          {
-            symbol: "PEOPLE/USDT:USDT",
-            side: "SHORT",
-            entryPrice: 0.0892,
-            exitPrice: 0.0856,
-            pnlPct: 10.12,
-            pnlUsd: 25.30,
-            reason: "SIGNAL_FLIP",
-            barsHeld: 48
-          },
-          {
-            symbol: "AVNT/USDT:USDT",
-            side: "LONG",
-            entryPrice: 1.234,
-            exitPrice: 1.178,
-            pnlPct: -11.34,
-            pnlUsd: -28.35,
-            reason: "STOP_LOSS",
-            barsHeld: 24
-          }
-        ]
-      };
-      setData(mockData);
-      setLoading(false);
-    }, 1000);
-  }, []);
+  const lastUpdateLabel = useMemo(() => {
+    if (!data?.summary.lastUpdate) return '—';
+    try {
+      return new Date(data.summary.lastUpdate).toLocaleString('fr-FR');
+    } catch {
+      return data.summary.lastUpdate;
+    }
+  }, [data?.summary.lastUpdate]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Activity className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Chargement des données...</p>
+          <p className="text-muted-foreground">Chargement des données en temps réel...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="w-8 h-8 text-destructive mx-auto mb-4" />
+          <p className="text-destructive mb-2">Erreur lors du chargement des données</p>
+          <p className="text-muted-foreground text-sm">{error}</p>
+          <button 
+            onClick={() => refresh()} 
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            Réessayer
+          </button>
         </div>
       </div>
     );
@@ -130,7 +52,7 @@ export function Dashboard() {
   if (!data) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-destructive">Erreur lors du chargement des données</p>
+        <p className="text-destructive">Aucune donnée disponible</p>
       </div>
     );
   }
@@ -142,13 +64,65 @@ export function Dashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Trading Dashboard</h1>
-            <p className="text-muted-foreground">Backtest Multi-Symbole - Gestion Cross Margin</p>
+            <p className="text-muted-foreground">Système de Trading Automatisé - Données en Temps Réel</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Dernière mise à jour: {lastUpdateLabel} {isStale && <span className="text-amber-500">(stale)</span>}
+            </p>
           </div>
-          <div className="flex items-center space-x-2 bg-gradient-primary rounded-lg px-4 py-2 shadow-glow">
-            <Target className="w-5 h-5 text-primary-foreground" />
-            <span className="text-primary-foreground font-medium">Levier 5x</span>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={refresh}
+              className="text-sm px-3 py-2 rounded-md border border-border hover:bg-accent transition-colors disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? 'MAJ...' : 'Rafraîchir'}
+            </button>
+            {/* Indicateur de santé du compte */}
+            {data.accountHealth && (
+              <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${
+                data.accountHealth.isHealthy 
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+              }`}>
+                <div className={`w-2 h-2 rounded-full ${
+                  data.accountHealth.isHealthy ? 'bg-green-500' : 'bg-red-500'
+                }`} />
+                <span className="text-sm font-medium">
+                  {data.accountHealth.isHealthy ? 'Compte Sain' : 'Attention'}
+                </span>
+              </div>
+            )}
+            
+            <div className="flex items-center space-x-2 bg-gradient-primary rounded-lg px-4 py-2 shadow-glow">
+              <Target className="w-5 h-5 text-primary-foreground" />
+              <span className="text-primary-foreground font-medium">Levier 5x</span>
+            </div>
           </div>
         </div>
+
+  {/* Contrôles manuels exécution symbole */}
+  <ManualRunSymbols refreshSnapshot={refresh} />
+
+        {/* Alertes de santé du compte */}
+        {data.accountHealth && data.accountHealth.warnings.length > 0 && (
+          <Card className="bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800">
+            <CardContent className="pt-4">
+              <div className="flex items-start space-x-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-yellow-800 dark:text-yellow-200">Alertes de Compte</h3>
+                  <ul className="mt-2 space-y-1">
+                    {data.accountHealth.warnings.map((warning) => (
+                      <li key={warning} className="text-sm text-yellow-700 dark:text-yellow-300">
+                        {warning}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Métriques principales */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -207,5 +181,39 @@ export function Dashboard() {
         <TradesTable trades={data.trades} />
       </div>
     </div>
+  );
+}
+
+// Composant interne: boutons d'exécution manuelle des symboles
+function ManualRunSymbols({ refreshSnapshot }: Readonly<{ refreshSnapshot: () => Promise<void> }>) {
+  const symbols = ['PEOPLE/USDT:USDT','AVAX/USDT:USDT','AVNT/USDT:USDT','0G/USDT:USDT'];
+  const { running, lastRuns, runSymbol } = useRunSymbol({ autoRefresh: () => { void refreshSnapshot(); }, endpoint: '/api/run-symbol', enableToast: true });
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Exécution Manuelle</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {symbols.map(sym => {
+            const short = sym.split('/')[0];
+            const info = lastRuns[sym];
+            return (
+              <button
+                key={sym}
+                onClick={() => runSymbol(sym)}
+                disabled={!!running}
+                className={`text-xs px-3 py-2 rounded-md border border-border hover:bg-accent transition-colors flex flex-col items-center ${running===sym ? 'opacity-70' : ''}`}
+              >
+                <span>{short}</span>
+                {running === sym ? <span className="animate-pulse text-[10px]">run...</span> : <span className="text-[10px] text-muted-foreground">{info ? info.action : 'idle'}</span>}
+                {info && <span className="text-[9px] text-muted-foreground">{info.ts}</span>}
+              </button>
+            );
+          })}
+        </div>
+        {running && <p className="text-xs text-muted-foreground">Exécution en cours: {running}</p>}
+      </CardContent>
+    </Card>
   );
 }

@@ -55,17 +55,6 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
             </p>
           </div>
 
-          {/* Lien retour vers l'accueil */}
-          <div className="mb-4">
-            <Link 
-              to="/"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Retour à l'accueil
-            </Link>
-          </div>
-
           {/* Formulaire */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Champ Username */}

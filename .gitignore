@@ -27,3 +27,10 @@ dist-ssr
 .netlify
 .env
 .env.*
+
+# Generated data files
+data/*.csv
+data/*.json
+
+# Keep data directory but ignore generated files
+!data/.gitkeep

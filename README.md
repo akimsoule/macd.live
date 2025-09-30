@@ -1,73 +1,78 @@
-# Welcome to your Lovable project
+# MACD Live - Trading Dashboard
 
-## Project info
+## Description
 
-**URL**: https://lovable.dev/projects/35bce72c-36fd-47f6-8300-1c35be7b736b
+Système de Trading Automatisé basé sur l'indicateur MACD avec dashboard en temps réel.
 
-## How can I edit this code?
+## Fonctionnalités
 
-There are several ways of editing your application.
+- Dashboard de trading en temps réel
+- Authentification sécurisée
+- Métriques de performance
+- Graphiques interactifs
+- Gestion des positions automatisée
 
-**Use Lovable**
+## Installation et Développement
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/35bce72c-36fd-47f6-8300-1c35be7b736b) and start prompting.
+Pour travailler en local avec votre IDE préféré :
 
-Changes made via Lovable will be committed automatically to this repo.
+Prérequis : Node.js & npm installés - [installer avec nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Étapes :
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Étape 1: Cloner le repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Étape 2: Naviguer vers le dossier du projet
+cd macd-live
 
-# Step 3: Install the necessary dependencies.
+# Étape 3: Installer les dépendances
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Étape 4: Démarrer le serveur de développement
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Variables d'environnement
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Copiez `.env.example` vers `.env` et configurez :
 
-**Use GitHub Codespaces**
+```bash
+# Authentification
+DASHBOARD_USER=votre@email.com
+DASHBOARD_PASSWORD=votre_mot_de_passe
+JWT_SECRET=votre_jwt_secret
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Base de données
+DATABASE_URL=postgresql://...
 
-## What technologies are used for this project?
+# Trading API
+ACCOUNT_API_KEY_MAIN=...
+ACCOUNT_SECRET_KEY_MAIN=...
+```
 
-This project is built with:
+## Architecture
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Frontend**: React + TypeScript + Vite
+- **Backend**: Netlify Functions
+- **Base de données**: PostgreSQL + Prisma
+- **Trading**: API Bitget
+- **Authentification**: JWT
 
-## How can I deploy this project?
+## Déploiement
 
-Simply open [Lovable](https://lovable.dev/projects/35bce72c-36fd-47f6-8300-1c35be7b736b) and click on Share -> Publish.
+Le projet est configuré pour le déploiement automatique sur Netlify.
 
-## Can I connect a custom domain to my Lovable project?
+## Configuration du trading
 
-Yes, you can!
+Les symboles et paramètres MACD sont configurés dans `netlify/app/trading/config.ts`.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Documentation
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- **Backtests** : `docs/BACKTEST.md` - Guide complet des scripts de backtest
+- **Données** : `data/` - Fichiers CSV générés par les backtests
+
+## Licence
+
+Usage privé uniquement.

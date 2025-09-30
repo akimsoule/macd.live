@@ -457,8 +457,17 @@ async function run() {
     );
   }
   const fs = await import("fs");
-  fs.writeFileSync("allocation_trades.csv", csvLines.join("\n"));
-  console.log("\n📝 Fichier allocation_trades.csv écrit.");
+  const path = await import("path");
+  
+  // S'assurer que le répertoire data existe
+  const dataDir = "data";
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  
+  const csvFilePath = path.join(dataDir, "allocation_trades.csv");
+  fs.writeFileSync(csvFilePath, csvLines.join("\n"));
+  console.log(`\n📝 Fichier ${csvFilePath} écrit.`);
 }
 
 run().catch((e) => console.error("Erreur run allocation test", e));

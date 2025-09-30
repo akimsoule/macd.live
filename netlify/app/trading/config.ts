@@ -66,8 +66,8 @@ export const BITGET_CONFIG = {
   enableRateLimit: true,
   options: { defaultType: "swap" },
   // Les clés API seront récupérées depuis les variables d'environnement
-  apiKey: process.env.BITGET_API_KEY,
-  secret: process.env.BITGET_SECRET,
-  password: process.env.BITGET_PASSPHRASE,
-  sandbox: process.env.NODE_ENV !== 'production',
+  apiKey: process.env.ACCOUNT_API_KEY_MAIN,
+  secret: process.env.ACCOUNT_SECRET_KEY_MAIN,
+  password: process.env.API_PASS,
+  sandbox: process.env.APP_ENV !== 'production',
 };

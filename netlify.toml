@@ -1,22 +1,13 @@
 [build]
-  command = "npm run build"
+  command = "npm install && npm run build && npx prisma migrate deploy && npx prisma generate"
   publish = "dist"
 
-[functions]
-  directory = "netlify/functions"
-
-# Catch-all (optionnel) pour autres endpoints API futurs
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
-  force = true
 
-# Fallback SPA: toutes les routes non /api/* renvoient index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = true
-
-

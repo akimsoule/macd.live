@@ -1,5 +1,5 @@
 import type { Config } from "@netlify/functions"
-import { runSymbol } from '../../app/trading/trader.js';
+import { runSymbol } from '../../app/trading/trader';
 
 export default async (req: Request) => {
   const symbol = "AVNT/USDT:USDT";

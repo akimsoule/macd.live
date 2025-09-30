@@ -30,6 +30,7 @@ model Trade {
     updatedAt  DateTime @updatedAt
 
     @@index([exitTime])
+    @@index([symbol, exitTime])
 }
 
 model EquitySnapshot {

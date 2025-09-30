@@ -1,4 +1,4 @@
-import { getTradingSnapshot, invalidateTradingSnapshotCache } from '../../app/trading/data-service.js';
+import { getTradingSnapshot, invalidateTradingSnapshotCache } from '../../app/trading/data-service';
 
 // Endpoint simplifié: fournit un snapshot agrégé (cache TTL ~10s dans data-service)
 // Query param: ?refresh=1 pour invalider le cache avant lecture

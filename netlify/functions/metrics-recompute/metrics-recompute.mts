@@ -1,6 +1,6 @@
 import type { Config } from '@netlify/functions';
-import { recomputeAndPersistMetrics } from '../../app/trading/metrics-db.js';
-import { invalidateTradingSnapshotCache } from '../../app/trading/data-service.js';
+import { recomputeAndPersistMetrics } from '../../app/trading/metrics-db';
+import { invalidateTradingSnapshotCache } from '../../app/trading/data-service';
 
 export const config: Config = {
   schedule: '*/15 * * * *'

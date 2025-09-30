@@ -22,8 +22,8 @@ import {
   retryWithTimeout,
   getBitgetFees
 } from "./bitget-utils.js";
-import { recordTrade } from './trading-history.js';
-import { recomputeAndPersistMetrics } from './metrics-db.js';
+import { recordTrade } from './trading-history';
+import { recomputeAndPersistMetrics } from './metrics-db';
 
 interface Candle {
   time: number;

@@ -1,11 +1,7 @@
-import { TARGET_EXPOSURES, START_CAPITAL } from './config.js';
-import { initializeBitgetExchange, getBitgetAccountInfo } from './bitget-utils.js';
-import { tradingHistory } from './trading-history.js';
-
-let prisma: any = null;
-(async () => {
-  try { const mod = await import('./db.js'); prisma = mod.prisma; } catch {}
-})();
+import { TARGET_EXPOSURES, START_CAPITAL } from './config';
+import { initializeBitgetExchange, getBitgetAccountInfo } from './bitget-utils';
+import { tradingHistory } from './trading-history';
+import { prisma } from './db';
 
 interface Cached<T> { data: T; expires: number }
 const CACHE_TTL_MS = 10_000; // 10s

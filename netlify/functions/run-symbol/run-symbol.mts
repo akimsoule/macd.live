@@ -1,4 +1,4 @@
-import { runSymbol } from '../../app/trading/trader.js';
+import { runSymbol } from '../../app/trading/trader';
 
 // Endpoint manuel: /api/run-symbol?symbol=PEOPLE/USDT:USDT
 // Body JSON optionnel { symbol: "..." }

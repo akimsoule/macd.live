@@ -1,8 +1,8 @@
-import { prisma } from './db.js';
-import { tradingHistory } from './trading-history.js';
-import { computeSharpe } from './metrics/sharpe.js';
-import { computeMaxDrawdown } from './metrics/drawdown.js';
-import { computeStreaks } from './metrics/streaks.js';
+import { prisma } from './db';
+import { tradingHistory } from './trading-history';
+import { computeSharpe } from './metrics/sharpe';
+import { computeMaxDrawdown } from './metrics/drawdown';
+import { computeStreaks } from './metrics/streaks';
 
 /**
  * Module de calcul & persistance des métriques agrégées.

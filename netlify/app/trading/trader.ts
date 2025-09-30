@@ -23,6 +23,13 @@ import {
   getBitgetFees
 } from "./bitget-utils.js";
 import { recordTrade } from './trading-history';
+import { 
+  notifyTradeOpen, 
+  notifyTradeClose, 
+  notifyNoAction, 
+  notifyStopLoss, 
+  notifyError
+} from './notifications';
 import { recomputeAndPersistMetrics } from './metrics-db';
 
 interface Candle {
@@ -216,6 +223,15 @@ async function closePosition(
       success: true
     };
   recordTrade(result, { margin: position.margin, fees });
+  notifyTradeClose({
+    symbol: result.symbol,
+    side: result.side,
+    entry: result.entryPrice,
+    exit: result.exitPrice,
+    pnlPct: result.pnlPct,
+    pnlUsd: result.pnlUsd,
+    reason: result.reason
+  });
   // Mise à jour snapshot métriques (best-effort)
   recomputeAndPersistMetrics().catch(e => console.warn('⚠️ recompute metrics échoué:', (e as any)?.message || e));
     return result;
@@ -313,6 +329,7 @@ async function handleBullSignal(
       const newPosition = await openPosition(exchange, symbol, "LONG", entryPrice, config, accountInfo);
       if (newPosition) {
         console.log(`📈 Position LONG ouverte pour ${symbol}`);
+        notifyTradeOpen({ symbol, side: 'LONG', price: entryPrice, leverage: LEVERAGE, notional: newPosition.notional });
       }
     }
     
@@ -325,6 +342,7 @@ async function handleBullSignal(
     const newPosition = await openPosition(exchange, symbol, "LONG", entryPrice, config, accountInfo);
     if (newPosition) {
       console.log(`📈 Position LONG ouverte pour ${symbol}`);
+      notifyTradeOpen({ symbol, side: 'LONG', price: entryPrice, leverage: LEVERAGE, notional: newPosition.notional });
       const opened: TradeResult = {
         symbol,
         side: "LONG",
@@ -364,6 +382,7 @@ async function handleBearSignal(
       const newPosition = await openPosition(exchange, symbol, "SHORT", entryPrice, config, accountInfo);
       if (newPosition) {
         console.log(`📉 Position SHORT ouverte pour ${symbol}`);
+        notifyTradeOpen({ symbol, side: 'SHORT', price: entryPrice, leverage: LEVERAGE, notional: newPosition.notional });
       }
     }
     
@@ -376,6 +395,7 @@ async function handleBearSignal(
     const newPosition = await openPosition(exchange, symbol, "SHORT", entryPrice, config, accountInfo);
     if (newPosition) {
       console.log(`📉 Position SHORT ouverte pour ${symbol}`);
+      notifyTradeOpen({ symbol, side: 'SHORT', price: entryPrice, leverage: LEVERAGE, notional: newPosition.notional });
       const opened: TradeResult = {
         symbol,
         side: "SHORT",
@@ -447,7 +467,10 @@ export async function runSymbol(symbol: string): Promise<TradeResult | null> {
     // Gestion stop-loss
     if (currentPosition) {
       const stopLossResult = await handleStopLoss(exchange, currentPosition, currentPrice);
-      if (stopLossResult) return stopLossResult;
+      if (stopLossResult) {
+        notifyStopLoss(symbol, currentPosition.side, stopLossResult.exitPrice);
+        return stopLossResult;
+      }
     }
     
     // Gestion des signaux
@@ -457,11 +480,13 @@ export async function runSymbol(symbol: string): Promise<TradeResult | null> {
       return await handleBearSignal(exchange, symbol, currentPrice, currentPosition, config, accountInfo);
     }
     
-    console.log(`✅ Aucune action requise pour ${symbol}`);
+  console.log(`✅ Aucune action requise pour ${symbol}`);
+  notifyNoAction(symbol, currentPrice, cross);
     return null;
     
   } catch (error) {
-    console.error(`❌ Erreur lors du trading ${symbol}:`, error);
+  console.error(`❌ Erreur lors du trading ${symbol}:`, error);
+  notifyError('runSymbol', symbol, (error as any)?.message || String(error));
     return {
       symbol,
       side: "LONG",

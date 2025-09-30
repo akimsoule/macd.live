@@ -56,6 +56,12 @@ export function useRunSymbol(
           json = await res.json();
         } catch {}
         if (!res.ok) {
+          if (res.status === 401) {
+            localStorage.removeItem('auth_token');
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login';
+            }
+          }
           throw new Error(json?.error || `HTTP ${res.status}`);
         }
         const action = json?.result?.reason || json?.result?.message || "OK";

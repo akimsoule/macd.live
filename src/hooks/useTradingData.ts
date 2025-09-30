@@ -122,6 +122,13 @@ export function useTradingData(
         } catch {}
       }
       if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem('auth_token');
+          // éviter boucle : rediriger si pas déjà sur /login
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        }
         throw new Error(`HTTP ${res.status}`);
       }
       const finalCt = res.headers.get("content-type") || "";

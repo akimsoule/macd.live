@@ -13,10 +13,6 @@ export default async function handler(req: Request) {
     const body = await req.json().catch(() => ({}));
     const userEnv = process.env.DASHBOARD_USER;
     const passEnv = process.env.DASHBOARD_PASSWORD;
-    console.log({
-        userEnv,
-        passEnv,
-    });
     if (!userEnv || !passEnv) {
       return new Response(JSON.stringify({ error: 'server_misconfig' }), { status: 500, headers });
     }
